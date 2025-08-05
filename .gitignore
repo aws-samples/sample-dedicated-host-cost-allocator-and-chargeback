@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated reports
+dedicated_host_costs_*.csv
+cost_allocation_report_*.csv
+
+# AWS credentials (never commit these)
+.aws/
+credentials
+config
+
+# Local config overrides
+config.local.yaml
+config-multi-account-test.yaml
+
+# Multi-account CSV reports
+multi_account_dedicated_host_costs_*.csv

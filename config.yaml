@@ -1,0 +1,20 @@
+# AWS Dedicated Host Cost Allocator Configuration
+
+# AWS regions to check for dedicated hosts
+regions:
+  - ap-south-1
+  - us-east-1
+  - us-west-2
+  - eu-west-1
+
+# EC2 instance tags to include in cost allocation reports
+tag_keys:
+  - Department
+  - Team
+  - Project
+  - Environment
+
+# Default allocation settings
+allocation:
+  days_back: 30        # Number of days of cost data to analyze
+  method: weighted     # Options: weighted (by vCPU), equal (split evenly)

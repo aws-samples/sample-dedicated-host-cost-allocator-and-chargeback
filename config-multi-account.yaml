@@ -1,0 +1,37 @@
+# Multi-Account Configuration Example
+# Copy this to config.yaml and customize for your organization
+
+# Multi-account setup for AWS Organizations
+accounts:
+  - id: "111111111111"
+    name: "production"
+    role: "arn:aws:iam::111111111111:role/CostAllocatorRole"
+    regions:
+      - "us-east-1"
+      - "us-west-2"
+  
+  - id: "222222222222"
+    name: "development"
+    role: "arn:aws:iam::222222222222:role/CostAllocatorRole"
+    regions:
+      - "us-east-1"
+  
+  - id: "333333333333"
+    name: "staging"
+    role: "arn:aws:iam::333333333333:role/CostAllocatorRole"
+    regions:
+      - "eu-west-1"
+
+# EC2 instance tags to include in cost allocation reports
+tag_keys:
+  - Department
+  - Team
+  - Project
+  - Environment
+  - CostCenter
+  - Owner
+
+# Default allocation settings
+allocation:
+  days_back: 30
+  method: weighted
