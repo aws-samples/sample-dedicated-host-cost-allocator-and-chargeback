@@ -281,7 +281,7 @@ class DedicatedHostCostAllocator:
             output_file = f'dedicated_host_costs_{method}_{timestamp}.csv'
         
         # Write CSV report
-        with open(output_file, 'w', newline='') as csvfile:
+        with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=instance_costs[0].keys())
             writer.writeheader()
             writer.writerows(instance_costs)
@@ -349,7 +349,7 @@ def load_config(config_file='config.yaml'):
             'method': 'weighted'
         }
     
-    with open(config_file, 'r') as f:
+    with open(config_file, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 def main():

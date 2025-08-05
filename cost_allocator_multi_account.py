@@ -36,7 +36,7 @@ class MultiAccountDedicatedHostCostAllocator:
             print("Create a config.yaml with accounts section. See docs/multi-account-setup.md")
             sys.exit(1)
         
-        with open(config_file, 'r') as f:
+        with open(config_file, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
         
         if 'accounts' not in config:
@@ -165,7 +165,7 @@ class MultiAccountDedicatedHostCostAllocator:
         output_file = f'multi_account_dedicated_host_costs_{method}_{timestamp}.csv'
         
         # Write CSV report
-        with open(output_file, 'w', newline='') as csvfile:
+        with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=instance_costs[0].keys())
             writer.writeheader()
             writer.writerows(instance_costs)

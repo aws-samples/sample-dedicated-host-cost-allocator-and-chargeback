@@ -2,23 +2,24 @@
 # Copy this to config.yaml and customize for your organization
 
 # Multi-account setup for AWS Organizations
+# Replace <ACCOUNT-ID-X> with your actual 12-digit AWS account IDs
 accounts:
-  - id: "111111111111"
+  - id: "<ACCOUNT-ID-1>"
     name: "production"
-    role: "arn:aws:iam::111111111111:role/CostAllocatorRole"
+    role: "arn:aws:iam::<ACCOUNT-ID-1>:role/CostAllocatorRole"
     regions:
       - "us-east-1"
       - "us-west-2"
   
-  - id: "222222222222"
+  - id: "<ACCOUNT-ID-2>"
     name: "development"
-    role: "arn:aws:iam::222222222222:role/CostAllocatorRole"
+    role: "arn:aws:iam::<ACCOUNT-ID-2>:role/CostAllocatorRole"
     regions:
       - "us-east-1"
   
-  - id: "333333333333"
+  - id: "<ACCOUNT-ID-3>"
     name: "staging"
-    role: "arn:aws:iam::333333333333:role/CostAllocatorRole"
+    role: "arn:aws:iam::<ACCOUNT-ID-3>:role/CostAllocatorRole"
     regions:
       - "eu-west-1"
 

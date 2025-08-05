@@ -15,7 +15,7 @@ aws configure
 # Single account
 python cost_allocator.py --method weighted
 
-# Multi-account (requires setup - see docs/multi-account-setup.md)
+# Multi-account (requires setup - see Multi-Account Organizations section below)
 cp config-multi-account.yaml config.yaml  # Edit with your accounts
 python cost_allocator_multi_account.py --method weighted
 
@@ -35,33 +35,44 @@ python cost_allocator_multi_account.py --method weighted
 ### 🏢 Multi-Account Organizations
 **For organizations with multiple AWS accounts:**
 
-1. **Create IAM roles** in each account:
-   ```bash
-   # In each member account, create role with trust policy
-   aws iam create-role --role-name CostAllocatorRole --assume-role-policy-document file://trust-policy.json
-   aws iam attach-role-policy --role-name CostAllocatorRole --policy-arn arn:aws:iam::ACCOUNT:policy/DedicatedHostCostAllocator
-   ```
-
-2. **Trust policy** (replace MANAGEMENT-ACCOUNT-ID):
+1. **Create trust policy** (save as `trust-policy.json`):
    ```json
    {
      "Version": "2012-10-17",
      "Statement": [{
        "Effect": "Allow",
-       "Principal": {"AWS": "arn:aws:iam::MANAGEMENT-ACCOUNT-ID:root"},
+       "Principal": {"AWS": "arn:aws:iam::<MANAGEMENT-ACCOUNT-ID>:root"},
        "Action": "sts:AssumeRole"
      }]
    }
    ```
 
+2. **Create IAM roles** in each member account:
+   ```bash
+   # Create the role with trust policy
+   aws iam create-role --role-name CostAllocatorRole --assume-role-policy-document file://trust-policy.json
+   
+   # Attach the cost allocator policy (create this first using the IAM policy template above)
+   aws iam attach-role-policy --role-name CostAllocatorRole --policy-arn arn:aws:iam::<ACCOUNT-ID>:policy/DedicatedHostCostAllocatorReadOnly
+   ```
+
 3. **Configure accounts** in `config-multi-account.yaml`:
    ```yaml
    accounts:
-     - id: "111111111111"
+     - id: "<ACCOUNT-ID-1>"
        name: "production"
-       role: "arn:aws:iam::111111111111:role/CostAllocatorRole"
-       regions: ["us-east-1"]
+       role: "arn:aws:iam::<ACCOUNT-ID-1>:role/CostAllocatorRole"
+       regions: ["us-east-1", "us-west-2", "eu-west-1"]  # Multiple regions
+     - id: "<ACCOUNT-ID-2>"
+       name: "development"
+       role: "arn:aws:iam::<ACCOUNT-ID-2>:role/CostAllocatorRole"
+       regions: ["us-east-1"]  # Single region
    ```
+   
+   **Region Configuration:**
+   - **Single region**: `regions: ["us-east-1"]`
+   - **Multiple regions**: `regions: ["us-east-1", "us-west-2", "eu-west-1"]`
+   - **All regions**: Add all regions where you have dedicated hosts
 
 4. **Run multi-account script**:
    ```bash
@@ -87,15 +98,13 @@ python cost_allocator_multi_account.py --method weighted
 
 - Python 3.7+
 - AWS CLI configured with credentials
-- Required AWS permissions:
-  - `ec2:DescribeHosts`
-  - `ec2:DescribeInstances`
-  - `ec2:DescribeInstanceTypes`
-  - `ce:GetCostAndUsage`
+- AWS credentials with read permissions for EC2 and Cost Explorer
+- See troubleshooting section for IAM policy template
 
 ## ⚙️ Configuration
 
-Edit `config.yaml` to customize regions and as your respective regions:
+### Single Account Configuration
+Edit `config.yaml` to customize regions and tags for your environment:
 
 ```yaml
 regions:
@@ -112,6 +121,21 @@ tag_keys:
 allocation:
   days_back: 30
   method: weighted
+```
+
+### Multi-Account Configuration
+For multi-account setups, each account can have different regions:
+
+```yaml
+accounts:
+  - id: "<ACCOUNT-ID-1>"
+    name: "production"
+    role: "arn:aws:iam::<ACCOUNT-ID-1>:role/CostAllocatorRole"
+    regions: ["us-east-1", "us-west-2"]  # Production in multiple US regions
+  - id: "<ACCOUNT-ID-2>"
+    name: "europe-prod"
+    role: "arn:aws:iam::<ACCOUNT-ID-2>:role/CostAllocatorRole"
+    regions: ["eu-west-1", "eu-central-1"]  # Europe account
 ```
 
 ## 🔧 Usage
@@ -224,9 +248,15 @@ AWS Cost Explorer data has a 24-48 hour delay. For immediate testing, use cost d
 - Check that regions match where hosts are located
 
 ### Permission Errors
-Ensure your AWS credentials have the required permissions. Use the provided IAM policy:
+Ensure your AWS credentials have the required permissions:
 
-**Required IAM Policy:**
+**Required AWS Permissions:**
+- `ec2:DescribeHosts` - Read dedicated host information
+- `ec2:DescribeInstances` - Read EC2 instance details
+- `ec2:DescribeInstanceTypes` - Get instance specifications
+- `ce:GetCostAndUsage` - Access cost data from Cost Explorer
+
+**IAM Policy Template:**
 ```json
 {
     "Version": "2012-10-17",
@@ -236,21 +266,44 @@ Ensure your AWS credentials have the required permissions. Use the provided IAM 
             "Action": [
                 "ec2:DescribeHosts",
                 "ec2:DescribeInstances",
-                "ec2:DescribeInstanceTypes",
+                "ec2:DescribeInstanceTypes"
+            ],
+            "Resource": "<REPLACE_WITH_YOUR_EC2_RESOURCE_ARNS or what your organisation allows>"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "ce:GetCostAndUsage"
             ],
-            "Resource": "*"
+            "Resource": "<REPLACE_WITH_YOUR_COST_EXPLORER_RESOURCE_ARNS or what your organisation allows>"
         }
     ]
 }
 ```
 
+**Resource ARN Examples:**
+- EC2 Resources: `arn:aws:ec2:<REGION>:<ACCOUNT-ID>:instance/*` or `arn:aws:ec2:<REGION>:<ACCOUNT-ID>:dedicated-host/*`
+- Cost Explorer: `arn:aws:ce:<REGION>:<ACCOUNT-ID>:<RESOURCE>`
+- For account-wide access (if required): `arn:aws:ec2:<REGION>:<ACCOUNT-ID>:<RESOURCE>`
+
+**Placeholder Definitions:**
+- `<REGION>`: AWS region (e.g., `us-east-1`) 
+- `<ACCOUNT-ID>`: Your 12-digit AWS account ID
+- `<RESOURCE>`: Specific resource type or `*` for all resources
+
+**Security Best Practices:**
+- Replace placeholders with most restrictive ARNs possible for your use case
+- Use dedicated service accounts with minimal permissions
+- Add condition statements for IP or time-based restrictions
+- Regularly audit and rotate access keys
+- Consider using AWS SSO/IAM Identity Center for enhanced security
+
 **Create the policy:**
 ```bash
-# Save above JSON as policy.json, then:
+# Save customized JSON as dedicated-host-policy.json, then:
 aws iam create-policy \
-  --policy-name DedicatedHostCostAllocator \
-  --policy-document file://policy.json
+  --policy-name DedicatedHostCostAllocatorReadOnly \
+  --policy-document file://dedicated-host-policy.json
 ```
 
 ### No Dedicated Hosts Found
@@ -291,6 +344,11 @@ This tool is designed to be cost-effective:
 - Use specific regions to reduce discovery overhead
 - Consider caching results for frequent analysis
 
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -299,10 +357,6 @@ This tool is designed to be cost-effective:
 4. Push to the branch
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - AWS Cost Explorer API for cost data
@@ -310,7 +364,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Community feedback and contributions
 
 ## 📞 Support
-
 
 - Review the troubleshooting section above for common issues
 - Create issues for bug reports or feature requests
