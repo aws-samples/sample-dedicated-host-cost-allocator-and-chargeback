@@ -349,24 +349,11 @@ This tool is designed to be cost-effective:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
 
 ## 🙏 Acknowledgments
 
 - AWS Cost Explorer API for cost data
 - AWS EC2 API for infrastructure discovery
-- Community feedback and contributions
-
-## 📞 Support
-
-- Review the troubleshooting section above for common issues
-- Create issues for bug reports or feature requests
 
 ---
 
