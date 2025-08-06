@@ -2,6 +2,8 @@
 
 A Python tool that automatically allocates AWS Dedicated Host costs to individual EC2 instances based on resource consumption and custom tags, enabling accurate chargeback and cost attribution across teams and departments.
 
+Disclaimer: This is this sample code and user must do their own due-diligence before actual usage.
+
 ## 🚀 Quick Start
 
 ```bash
@@ -55,6 +57,7 @@ python cost_allocator_multi_account.py --method weighted
    # Attach the cost allocator policy (create this first using the IAM policy template above)
    aws iam attach-role-policy --role-name CostAllocatorRole --policy-arn arn:aws:iam::<ACCOUNT-ID>:policy/DedicatedHostCostAllocatorReadOnly
    ```
+Follow IAM best practices: https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html
 
 3. **Configure accounts** in `config-multi-account.yaml`:
    ```yaml
