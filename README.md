@@ -360,4 +360,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⚠️ Important**: This tool only **reads** AWS data and creates **local CSV files**. The core script is **read-only** and safe to run.
+This tool only **reads** AWS data and creates **local CSV files**.
